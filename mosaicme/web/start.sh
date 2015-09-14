@@ -1,11 +1,13 @@
 #!/bin/sh
+set -e
+set -v
 
 # Collect static files
 python /app/mosaicme-web/manage.py collectstatic --noinput
 
 service nginx start
 
-if [ ! ps ax |grep -v grep |grep nginx > /dev/null ];
+if [ ! ps ax |grep -v grep |grep nginx ];
 then
         echo "nginx is not running"
         exit 2
