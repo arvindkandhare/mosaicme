@@ -65,7 +65,7 @@ class TwitterListener(StreamListener):
             media_url = media['media_url']
             media_id = media['id_str']
             logger.info('[Tweet] Media found. ID: %s - URL: %s', media_id, media_url)
-            process_image.delay(media_id, media_url, twitter_user, self.bucket, self.s3_credentials, self.rmq_credentials, queue=self.queue)
+            process_image(media_id, media_url, twitter_user, self.bucket, self.s3_credentials, self.rmq_credentials, queue=self.queue)
         return True
 
     def on_error(self, status):

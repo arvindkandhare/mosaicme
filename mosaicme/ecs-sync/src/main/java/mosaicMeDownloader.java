@@ -71,6 +71,11 @@ public class mosaicMeDownloader  extends Thread{
 
             ConnectionFactory factory = new ConnectionFactory();
             factory.setHost(QUEUE_HOST_NAME);
+
+	    factory.setUsername("guest");
+	    factory.setPassword("guest");
+	    factory.setPort(5672);
+
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
 

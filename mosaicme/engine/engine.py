@@ -16,12 +16,12 @@ def copySourceFile(imagename):
 
     print "Copy Source File ...."
     # check if file exist under share/in
-    src = "/mosaic/in/"+imagename
-    dst = "/engine/tmp/"+imagename
+    src = "/tmp/mosaic-generator/in/"+imagename
+    dst = "/tmp/mosaic-generator/tmp/"+imagename
     if(os.path.isfile(src)):
     # copy to destination process/tmp
         shutil.copyfile(src, dst)
-        print " [x] Finished copying "+imagename+" locally"
+        print " [x] Finished copying "+imagename+" locally"+ src + " to" +dst
         logging.info('[engine]  [x] Finished copying '+imagename+' locally')
         return True
     else:
@@ -30,16 +30,16 @@ def copySourceFile(imagename):
 
 def buildTiles():
     print "build Tiles ...."
-    os.system("metapixel-prepare /mosaic/raw tiles/ --width=32 --height=32")
+    os.system("metapixel-prepare /tmp/mosaic-generator/raw/ tiles/ --width=32 --height=32")
     print " [x] Finished building tiles"
     logging.info('[engine] [x] Finished building tiles')
 
 
 def createMosaic(imagename):
     print "Create Mosaic ...."
-    src = "/engine/tmp/"+imagename
-    out = "/engine/tmp/mosaic-"+imagename
-    dest="/engine/tiles/"
+    src = "/tmp/mosaic-generator/tmp/"+imagename
+    out = "/tmp/mosaic-generator/tmp/mosaic-"+imagename
+    dest="/tmp/mosaic-generator/tiles/"
     os.system("metapixel --metapixel "+src+" "+out+" --library "+dest+" --scale=10 --distance=5")
     print " [x] Finished Creating Mosaic File"
     logging.info('[engine] [x] Finished Creating Mosaic File')
@@ -48,8 +48,8 @@ def createMosaic(imagename):
 def createThumbnails(imagename):
     print "Create Thumbnails ...."
     global thm_size
-    src = "/engine/tmp/mosaic-"+imagename
-    out = "/engine/tmp/thm-"+imagename
+    src = "/tmp/mosaic-generator/tmp/mosaic-"+imagename
+    out = "/tmp/mosaic-generator/tmp/thm-"+imagename
 
     os.system("convert -thumbnail "+str(thm_size)+" "+src+" "+out)
     print " [x] Finished Creating Mosaic File"
@@ -57,10 +57,10 @@ def createThumbnails(imagename):
 
 def moveFiles(imagename):
     print "Move Files...."
-    src = "/engine/tmp/mosaic-"+imagename
+    src = "/tmp/mosaic-generator/tmp/mosaic-"+imagename
     src2 = "/engine/tmp/thm-"+imagename
-    dst = "/mosaic/out/large/"+imagename
-    dst2 = "/mosaic/out/small/"+imagename
+    dst = "/tmp/mosaic-generator/out/large/"+imagename
+    dst2 = "/tmp/mosaic-generator/out/small/"+imagename
     if(os.path.isfile(src)):
         # copy to destination mosaic/out
             shutil.copyfile(src, dst)
@@ -75,7 +75,8 @@ def moveFiles(imagename):
 def putMsg(msg):
     print "Put Msg ...."
     global hostname
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host=hostname))
+    pikaparams = pika.ConnectionParameters(host=hostname,port=5672,ssl=False,credentials=None,connection_attempts=10,socket_timeout=100)
+    connection = pika.BlockingConnection(pikaparams)
     channel = connection.channel()
     channel.queue_declare(queue='mosaic-finish', durable=True)
     channel.basic_publish(exchange='',
@@ -121,12 +122,13 @@ logger = logging.getLogger(__name__)
 print "Read setting ini"
 logger.info('[engine] Read Setting ini')
 config = configparser.ConfigParser()
-if(os.path.isfile('/mosaic/setting/engine.ini') ):
-    config.read('/mosaic/setting/engine.ini')
+if(os.path.isfile('./mosaicme/engine/engine.ini') ):
+    config.read('./mosaicme/engine/engine.ini')
 else:
+    print "I AM HERE"
     config.read('engine.ini')
 
-hostname =config['DEFAULT']['hostname']
+hostname =config.get('DEFAULT',"hostname")
 thm_size =config['DEFAULT']['thm_size']
 queueeng=config['DEFAULT']['queueeng']
 queueout=config['DEFAULT']['queueout']
@@ -136,7 +138,10 @@ logging.info('[engine] Thum Size '+str(thm_size))
 logging.info('[engine] Queue In '+queueeng)
 logging.info('[engine] Queue Out '+queueout)
 
-connection = pika.BlockingConnection(pika.ConnectionParameters(host=hostname))
+credentials = pika.PlainCredentials('guest', 'guest')
+pikaparams = pika.ConnectionParameters(host=hostname,port=5672,ssl=False,credentials=None,connection_attempts=10,socket_timeout=100)
+connection = pika.BlockingConnection(pikaparams)
+
 channel = connection.channel()
 channel.queue_declare(queue='mosaic-eng', durable=True)
 print ' [*] Waiting for messages. To exit press CTRL+C'
