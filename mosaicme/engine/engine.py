@@ -30,7 +30,7 @@ def copySourceFile(imagename):
 
 def buildTiles():
     print "build Tiles ...."
-    os.system("metapixel-prepare /tmp/mosaic-generator/raw/ tiles/ --width=32 --height=32")
+    os.system("metapixel-prepare /tmp/mosaic-generator/tmp/ /tmp/mosaic-generator/tiles/ --width=32 --height=32")
     print " [x] Finished building tiles"
     logging.info('[engine] [x] Finished building tiles')
 
@@ -40,7 +40,7 @@ def createMosaic(imagename):
     src = "/tmp/mosaic-generator/tmp/"+imagename
     out = "/tmp/mosaic-generator/tmp/mosaic-"+imagename
     dest="/tmp/mosaic-generator/tiles/"
-    os.system("metapixel --metapixel "+src+" "+out+" --library "+dest+" --scale=10 --distance=5")
+    os.system("metapixel --metapixel "+src+" "+out+" --library "+dest+" --scale=10 ")
     print " [x] Finished Creating Mosaic File"
     logging.info('[engine] [x] Finished Creating Mosaic File')
 
@@ -58,7 +58,7 @@ def createThumbnails(imagename):
 def moveFiles(imagename):
     print "Move Files...."
     src = "/tmp/mosaic-generator/tmp/mosaic-"+imagename
-    src2 = "/engine/tmp/thm-"+imagename
+    src2 = "/tmp/mosaic-generator/tmp/thm-"+imagename
     dst = "/tmp/mosaic-generator/out/large/"+imagename
     dst2 = "/tmp/mosaic-generator/out/small/"+imagename
     if(os.path.isfile(src)):
