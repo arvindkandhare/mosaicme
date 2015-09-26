@@ -143,12 +143,12 @@ pikaparams = pika.ConnectionParameters(host=hostname,port=5672,ssl=False,credent
 connection = pika.BlockingConnection(pikaparams)
 
 channel = connection.channel()
-channel.queue_declare(queue='mosaic-eng', durable=True)
+channel.queue_declare(queue='mosaic-in', durable=True)
 print ' [*] Waiting for messages. To exit press CTRL+C'
 logging.info('[engine]  [*] Waiting for messages. To exit press CTRL+C')
 channel.basic_qos(prefetch_count=1)
 channel.basic_consume(callback,
-                      queue='mosaic-eng')
+                      queue='mosaic-in')
 
 channel.start_consuming()
 
